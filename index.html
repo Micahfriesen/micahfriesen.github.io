@@ -46,9 +46,10 @@
     </script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 
-    <canvas id="graph" aria - label="chart" height="350" width="580"></canvas>
+    <canvas id="graph" aria - label="chart" height="300" width="580"></canvas>
 
     <script>
+
         const timeStamp = [];
         const accelData = [];
         const baroData = [];
@@ -60,18 +61,24 @@
         const AccelSpeedHeader = [];
         const BaroSpeedHeader = [];
 
+        const FileName = [];
+
         function drawGraph(csvFile) {
-            console.log(csvFile)
+
+            AccelHeader.length = 0;
+            BaroHeader.length = 0;
+            AccelSpeedHeader.length = 0;
+            BaroSpeedHeader.length = 0;
+            timeStamp.length = 0;
+            accelData.length = 0;
+            baroData.length = 0;
+            accelSpeed.length = 0;
+            baroSpeed.length = 0;
 
             AccelHeader.push(csvFile.data[0][1]);
             BaroHeader.push(csvFile.data[0][2]);
             AccelSpeedHeader.push(csvFile.data[0][3]);
             BaroSpeedHeader.push(csvFile.data[0][4]);
-
-            console.log(AccelHeader)
-            console.log(BaroHeader)
-            console.log(AccelSpeedHeader)
-            console.log(BaroSpeedHeader)
 
             for (i = 1; i < csvFile.data.length; i++) {
                 timeStamp.push(csvFile.data[i][0])
@@ -178,9 +185,12 @@
                 }
             }
         }
+
+        var chrt = document.getElementById("graph");
+        var graph = new Chart(chrt, graphData);
+
         function chartDataReady() {
-            var chrt = document.getElementById("graph");
-            var graph = new Chart(chrt, graphData);
+            graph.update();
         }
         function openFile() {
             document.getElementById('inp').click();
@@ -189,9 +199,13 @@
             var file = e.target.files[0];
             if (!file) return;
             var reader = new FileReader();
+            reader.fileName = file.name
             reader.onload = function (e) {
                 document.getElementById('contents').innerHTML = e.target.result;
             }
+            FileName.push(file.name);
+            document.getElementById("fname").innerHTML = FileName
+            console.log(FileName)
             Papa.parse(file, {
                 header: false,
                 quotes: false,
@@ -202,9 +216,12 @@
                 }
             });
         }
+
     </script>
-    <button class="button button1" onclick="openFile()">Open .csv</button>
-    <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
-<pre id="contents"></pre>
+    <div>
+        <h2 id="fname" style="text-align:center"></h2>
+        <button class="button button1" onclick="openFile()">Open .csv</button>
+        <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
+    </div>
 </body>
 </html>
