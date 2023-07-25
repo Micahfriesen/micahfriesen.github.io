@@ -1,14 +1,210 @@
-<p>Hello World</p>
+<!DOCTYPE>
+<html>
+<head>
+    <meta charset- "UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RocketViewer</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        .button {
+            border: none;
+            color: white;
+            padding: 32px 64px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            cursor: pointer;
+        }
 
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    let fr = new FileReader();
-    fr.onload = x=> resolve(fr.result);
-    fr.readAsText(file);
-})}
+        .button1 {
+            background-color: white;
+            color: black;
+            border: 2px solid #4CAF50;
+        }
 
-async function read(input) {
-  msg.innerText = await readFile(input.files[0]);
-}
-<input type="file" onchange="read(this)"/>
-<h3>Content:</h3><pre id="msg"></pre>
+            .button1:hover {
+                background-color: #4CAF50;
+                color: white;
+            }
+    </style>
+</head>
+<body>
+    <h3 style="text-align:center">Log viewer for AltimeterControlV3</h3>
+
+    <script type="/module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.min.js">
+    </script>
+    <script type="/module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.umd.min.js"></script>
+    <script type="/module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/helpers.js">
+    </script>
+    <script type="/module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/helpers.min.js">
+    </script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <canvas id="graph" aria - label="chart" height="350" width="580"></canvas>
+
+    <script>
+        const timeStamp = [];
+        const accelData = [];
+        const baroData = [];
+        const accelSpeed = [];
+        const baroSpeed = [];
+
+        const AccelHeader = [];
+        const BaroHeader = [];
+        const AccelSpeedHeader = [];
+        const BaroSpeedHeader = [];
+
+        function drawGraph(csvFile) {
+            console.log(csvFile)
+
+            AccelHeader.push(csvFile.data[0][1]);
+            BaroHeader.push(csvFile.data[0][2]);
+            AccelSpeedHeader.push(csvFile.data[0][3]);
+            BaroSpeedHeader.push(csvFile.data[0][4]);
+
+            console.log(AccelHeader)
+            console.log(BaroHeader)
+            console.log(AccelSpeedHeader)
+            console.log(BaroSpeedHeader)
+
+            for (i = 1; i < csvFile.data.length; i++) {
+                timeStamp.push(csvFile.data[i][0])
+                accelData.push(csvFile.data[i][1])
+                baroData.push(csvFile.data[i][2])
+                accelSpeed.push(csvFile.data[i][3])
+                baroSpeed.push(csvFile.data[i][4])
+            };
+            chartDataReady()
+        }
+        const graphData = {
+            type: 'line',
+            data: {
+                labels: timeStamp,
+                datasets: [
+                    {
+                        label: AccelHeader,
+                        data: accelData,
+                        yAxisID: 'y1',
+                    },
+                    {
+                        label: BaroHeader,
+                        data: baroData,
+                        yAxisID: 'y2',
+                    },
+                    {
+                        label: AccelSpeedHeader,
+                        data: accelSpeed,
+                        yAxisID: 'y3',
+                    },
+                    {
+                        label: BaroSpeedHeader,
+                        data: baroSpeed,
+                        yAxisID: 'y4',
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'x',
+                tension: .1,
+                scales: {
+                    y1: {
+                        position: 'left',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Acceleration',
+                        },
+                        max: 100,
+                        min: -50,
+                        stepSize: 10
+                    },
+                    y2: {
+                        position: 'left',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Altitude',
+                        },
+                        max: 1000,
+                        min: -500,
+                        stepSize: 10
+                    },
+                    y3: {
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Accel Speed',
+                        },
+                        max: 400,
+                        min: -200,
+                        stepSize: 10
+                    },
+                    y4: {
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Baro Speed',
+                        },
+                        max: 400,
+                        min: -200,
+                        stepSize: 10
+                    },
+                },
+                interaction: {
+                    axis: 'x',
+                    mode: 'nearest',
+                    intersect: false,
+                    yAlign: 'top',
+                },
+                yAlign: 'top',
+                plugins: {
+                    tooltip: {
+                        enabled: true,
+                        yAlign: 'top',
+                    },
+                },
+                elements: {
+                    point: {
+                        radius: 0,
+                    }
+                }
+            }
+        }
+        function chartDataReady() {
+            var chrt = document.getElementById("graph");
+            var graph = new Chart(chrt, graphData);
+        }
+        function openFile() {
+            document.getElementById('inp').click();
+        }
+        function readFile(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('contents').innerHTML = e.target.result;
+            }
+            Papa.parse(file, {
+                header: false,
+                quotes: false,
+                skipEmptyLines: true,
+                columns: null,
+                complete: function (dataFile) {
+                    drawGraph(dataFile);
+                }
+            });
+        }
+    </script>
+    <button class="button button1" onclick="openFile()">Open .csv</button>
+    <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
+<pre id="contents"></pre>
+</body>
+</html>
