@@ -9,7 +9,7 @@
         .button {
             border: none;
             color: white;
-            padding: 32px 64px;
+            padding: 20px 54px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
@@ -147,7 +147,7 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Accel Speed',
+                            text: 'Speed',
                         },
                         max: 400,
                         min: -200,
@@ -156,9 +156,8 @@
                     y4: {
                         position: 'right',
                         beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Baro Speed',
+                        ticks: {
+                            display: false,
                         },
                         max: 400,
                         min: -200,
@@ -179,6 +178,9 @@
                     },
                 },
                 elements: {
+                    line: {
+                        borderWidth: 2,
+                    },
                     point: {
                         radius: 0,
                     }
