@@ -45,11 +45,9 @@
     <script type="/module" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/helpers.min.js">
     </script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
-
     <canvas id="graph" aria - label="chart" height="300" width="580" style="padding: 20px 54px"></canvas>
 
     <script>
-
         const timeStamp = [];
         const accelData = [];
         const baroData = [];
@@ -164,18 +162,15 @@
                         stepSize: 10
                     },
                 },
-                interaction: {
-                    axis: 'x',
-                    mode: 'nearest',
-                    intersect: false,
-                    yAlign: 'top',
-                },
-                yAlign: 'top',
-                plugins: {
-                    tooltip: {
-                        enabled: true,
-                        yAlign: 'top',
-                    },
+				plugins: {
+					tooltip: {
+						position: 'bottom',
+					},
+				},
+				interaction: {
+                  axis: 'x',
+                  mode: 'nearest',
+                  intersect: false,
                 },
                 elements: {
                     line: {
@@ -187,6 +182,16 @@
                 }
             }
         }
+		
+		Chart.Tooltip.positioners.bottom = function(elements, eventPosition) {
+			const {chartArea: {bottom}, scales: {x, y}} = this.chart
+			return {
+				x: x.getPixelForValue(x.getValueForPixel(eventPosition.x)),
+				y: bottom,
+				xAlign: 'center',
+				yAlign: 'bottom',
+			}
+		};
 
         var chrt = document.getElementById("graph");
         var graph = new Chart(chrt, graphData);
