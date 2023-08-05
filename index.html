@@ -164,6 +164,7 @@
                 },
 				plugins: {
 					tooltip: {
+						//enabled: false,
 						position: 'bottom',
 					},
 				},
@@ -179,9 +180,36 @@
                     point: {
                         radius: 0,
                     }
-                }
+                },
             }
         }
+		
+		var chrt = document.getElementById("graph");
+        var graph = new Chart(chrt, graphData);
+		
+		/*graph.canvas.addEventListener('mousemove',  (e) => {
+			crosshair(graph, e);		
+		})*/
+		function crosshair(chart, mousemove) {
+			//chart.update('none');
+			const x = mousemove.offsetX;
+			const y = mousemove.offsetY;
+			const {ctx, chartArea: { top, bottom, left, right, width, height } } = chart;
+			//ctx.fillStyle = "#FF0000";
+			//ctx.fillRect(0,0,150,75);
+			//ctx.fill();
+			ctx.save();
+			
+			ctx.strokeStyle = 'rgba(50, 50, 50, 1)';
+			ctx.lineWidth = 2;
+			
+			ctx.beginPath();
+			ctx.moveTo(mousemove.offsetX, top);
+			ctx.lineTo(mousemove.offsetX, bottom);
+			ctx.stroke();
+			ctx.closePath();
+			//console.log(top, bottom, mousemove.offsetX, ctx)
+		}
 		
 		Chart.Tooltip.positioners.bottom = function(elements, eventPosition) {
 			const {chartArea: {bottom}, scales: {x, y}} = this.chart
@@ -192,9 +220,6 @@
 				yAlign: 'bottom',
 			}
 		};
-
-        var chrt = document.getElementById("graph");
-        var graph = new Chart(chrt, graphData);
 
         function chartDataReady() {
             graph.update();
