@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset- "UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="dist/uPlot.min.css">
+    <title>RocketViewer</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        .button {
+            border: none;
+            color: white;
+            padding: 20px 54px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            cursor: pointer;
+        }
+
+        .button1 {
+            background-color: white;
+            color: black;
+            border: 2px solid #4CAF50;
+        }
+
+        .button1:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="dist/uPlot.iife.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <script>
+        const timeStamp = [];
+        const accelData = [];
+        const baroData = [];
+        const accelSpeed = [];
+        const baroSpeed = [];
+
+        const AccelHeader = [];
+        const BaroHeader = [];
+        const AccelSpeedHeader = [];
+        const BaroSpeedHeader = [];
+
+        const FileName = [];
+
+        function wheelZoomPlugin(opts) {
+            let factor = opts.factor || 0.75;
+
+            let xMin, xMax, yMin, yMax, xRange, yRange;
+
+            function clamp(nRange, nMin, nMax, fRange, fMin, fMax) {
+                if (nRange > fRange) {
+                    nMin = fMin;
+                    nMax = fMax;
+                }
+                else if (nMin < fMin) {
+                    nMin = fMin;
+                    nMax = fMin + nRange;
+                }
+                else if (nMax > fMax) {
+                    nMax = fMax;
+                    nMin = fMax - nRange;
+                }
+
+                return [nMin, nMax];
+            }
+
+            return {
+                hooks: {
+                    ready: u => {
+                        xMin = u.scales.x.min;
+                        xMax = u.scales.x.max;
+                        yMin = u.scales.y.min;
+                        yMax = u.scales.y.max;
+
+                        xRange = xMax - xMin;
+                        yRange = yMax - yMin;
+
+                        let over = u.over;
+                        let rect = over.getBoundingClientRect();
+
+                        // wheel drag pan
+                        over.addEventListener("mousedown", e => {
+                            if (e.button == 1) {
+                                //	plot.style.cursor = "move";
+                                e.preventDefault();
+
+                                let left0 = e.clientX;
+                                //	let top0 = e.clientY;
+
+                                let scXMin0 = u.scales.x.min;
+                                let scXMax0 = u.scales.x.max;
+
+                                let xUnitsPerPx = u.posToVal(1, 'x') - u.posToVal(0, 'x');
+
+                                function onmove(e) {
+                                    e.preventDefault();
+
+                                    let left1 = e.clientX;
+                                    //	let top1 = e.clientY;
+
+                                    let dx = xUnitsPerPx * (left1 - left0);
+
+                                    u.setScale('x', {
+                                        min: scXMin0 - dx,
+                                        max: scXMax0 - dx,
+                                    });
+                                }
+
+                                function onup(e) {
+                                    document.removeEventListener("mousemove", onmove);
+                                    document.removeEventListener("mouseup", onup);
+                                }
+
+                                document.addEventListener("mousemove", onmove);
+                                document.addEventListener("mouseup", onup);
+                            }
+                        });
+
+                        // wheel scroll zoom
+                        over.addEventListener("wheel", e => {
+                            e.preventDefault();
+
+                            let { left, top } = u.cursor;
+
+                            let leftPct = left / rect.width;
+                            let btmPct = 1 - top / rect.height;
+                            let xVal = u.posToVal(left, "x");
+                            let yVal = u.posToVal(top, "y");
+                            let oxRange = u.scales.x.max - u.scales.x.min;
+                            let oyRange = u.scales.y.max - u.scales.y.min;
+
+                            let nxRange = e.deltaY < 0 ? oxRange * factor : oxRange / factor;
+                            let nxMin = xVal - leftPct * nxRange;
+                            let nxMax = nxMin + nxRange;
+                            [nxMin, nxMax] = clamp(nxRange, nxMin, nxMax, xRange, xMin, xMax);
+
+                            //let nyRange = e.deltaY < 0 ? oyRange * factor : oyRange / factor;
+                            let nyRange = oyRange;
+                            let nyMin = yVal - btmPct * nyRange;
+                            let nyMax = nyMin + nyRange;
+                            [nyMin, nyMax] = clamp(nyRange, nyMin, nyMax, yRange, yMin, yMax);
+
+                            u.batch(() => {
+                                u.setScale("x", {
+                                    min: nxMin,
+                                    max: nxMax,
+                                });
+
+                                u.setScale("y", {
+                                    min: nyMin,
+                                    max: nyMax,
+                                });
+                            });
+                        });
+                    }
+                }
+            };
+        }
+            
+        function getSize() {
+                return {
+                    width: window.innerWidth - 100,
+                    height: window.innerHeight - 300,
+                }
+            }
+        function drawGraph(csvFile) {
+
+            AccelHeader.length = 0;
+            BaroHeader.length = 0;
+            AccelSpeedHeader.length = 0;
+            BaroSpeedHeader.length = 0;
+            timeStamp.length = 0;
+            accelData.length = 0;
+            baroData.length = 0;
+            accelSpeed.length = 0;
+            baroSpeed.length = 0;
+
+            AccelHeader.push(csvFile.data[0][1]);
+            BaroHeader.push(csvFile.data[0][2]);
+            AccelSpeedHeader.push(csvFile.data[0][3]);
+            BaroSpeedHeader.push(csvFile.data[0][4]);
+
+            for (i = 1; i < csvFile.data.length; i++) {
+                timeStamp.push(csvFile.data[i][0]/1000)
+                accelData.push(csvFile.data[i][1])
+                baroData.push(csvFile.data[i][2])
+                accelSpeed.push(csvFile.data[i][3])
+                baroSpeed.push(csvFile.data[i][4])
+            };
+            console.log(timeStamp[csvFile.data.length])
+            chartDataReady()
+        }
+
+        function chartDataReady() {
+            console.time('chart');
+
+            let opts = {
+                title: "Log viewer for AltimeterControlV3",
+				...getSize(),
+                padding: [20, 20, 20, 20],
+                plugins: [
+                    wheelZoomPlugin({ factor: 0.75 }),
+                ],
+                scales: {
+                    x: {
+                        time: false,
+                    },
+                    y: {
+                        auto: true,
+                    }
+                },
+                series: [
+                    {
+                        label: "TimeStamp",
+                    },
+                    {
+                        label: AccelHeader,
+                        stroke: "green",
+                    },
+                    {
+                        label: BaroHeader,
+                        stroke: "blue",
+                    },
+                    {
+                        label: AccelSpeedHeader,
+                        stroke: "red",
+                    },
+                    {
+                        label: BaroSpeedHeader,
+                        stroke: "purple ",
+                    },
+                ]
+            };
+
+            const data = [
+                timeStamp,
+                accelData,
+                baroData,
+                accelSpeed,
+                baroSpeed,
+            ];
+
+            let u = new uPlot(opts, data, document.body);
+
+            function throttle(cb, limit) {
+				var wait = false;
+
+				return () => {
+					if (!wait) {
+						requestAnimationFrame(cb);
+						wait = true;
+						setTimeout(() => {
+							wait = false;
+						}, limit);
+					}
+				}
+			}
+			window.addEventListener("resize", e => {
+				u.setSize(getSize());
+			});
+            console.timeEnd('chart');
+        }
+
+        function openFile() {
+            document.getElementById('inp').click();
+        }
+        function readFile(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.fileName = file.name
+            reader.onload = function (e) {
+                document.getElementById('contents').innerHTML = e.target.result;
+            }
+            FileName.push(file.name);
+            document.getElementById("fname").innerHTML = FileName
+            console.log(FileName)
+            Papa.parse(file, {
+                header: false,
+                quotes: false,
+                skipEmptyLines: true,
+                columns: null,
+                complete: function (dataFile) {
+                    drawGraph(dataFile);
+                }
+            });
+        }
+        //chartDataReady()
+    </script>
+    <h2 id="fname" style="text-align:center"></h2>
+    <button class="button button1" onclick="openFile()">Open .csv</button>
+    <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
+</body>
+
+</html>
