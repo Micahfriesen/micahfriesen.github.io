@@ -19,6 +19,7 @@
             margin: 4px 2px;
             transition-duration: 0.4s;
             cursor: pointer;
+            align-self: top;
         }
 
         .button1 {
@@ -31,6 +32,10 @@
             background-color: #4CAF50;
             color: white;
         }
+    #fileButton {
+        display: flex;
+        align-items: flex-start;
+    }
     </style>
 </head>
 
@@ -184,7 +189,7 @@
         function getSize() {
             return {
                 width: window.innerWidth - 100,
-                height: window.innerHeight - 300,
+                height: window.innerHeight - 100,
             }
         }
         function drawGraph(csvFile) {
@@ -424,6 +429,8 @@
                 element.remove();
             }
             u= new uPlot(opts, data, document.body);
+            const element = document.getElementById("graph");
+            element.insertBefore(document.getElementById("graph"), document.getElementById("btn"))
             function throttle(cb, limit) {
                 var wait = false;
 
@@ -467,8 +474,10 @@
             });
         }
     </script>
-    <button class="button button1" onclick="openFile()">Open .csv</button>
-    <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
+    <div id="fileButton">
+        <button id="btn" class="button button1" onclick="openFile()">Open .csv</button>
+        <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
+    </div>
 </body>
 
 </html>
