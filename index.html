@@ -199,6 +199,15 @@
             accelSpeed.length = 0;
             baroSpeed.length = 0;
 
+            accelScaleMax = 0;
+            accelScaleMin = 0;
+            baroScaleMax = 0;
+            baroScaleMin = 0;
+            speedScaleMax = 0;
+            speedScaleMin = 0;
+            scaleMax = 0;
+            scaleMin = 0;
+
             AccelHeader.push(csvFile.data[0][1]);
             BaroHeader.push(csvFile.data[0][2]);
             AccelSpeedHeader.push(csvFile.data[0][3]);
@@ -303,7 +312,7 @@
                         labelSize: 20,
                         grid: {
                             show: true,
-                            stroke: "rgb(230, 230, 230)",
+                            stroke: "rgb(220, 220, 220)",
                             width: 2,
                             dash: [10, 5],
                         },
@@ -330,7 +339,7 @@
                         stroke: "blue",
                         grid: {
                             show: true,
-                            stroke: "rgb(230, 230, 230)",
+                            stroke: "rgb(200, 200, 200)",
                             width: 2,
                             dash: [10, 5],
                         },
@@ -349,6 +358,16 @@
                     },
                     {
                         show: false,
+                        scale: "accelMph",
+                        space: 30,
+                        side: 1,
+                        label: "accelMph",
+                        labelGap: 4,
+                        labelSize: 4 + 12 + 4,
+                        stroke: "red",
+                        grid: {
+                            show: false,
+                        },
                     },
                 ],
                 scales: {
@@ -388,15 +407,23 @@
                             ];
                         }
                     },
+                    "accelMph": {
+                        auto: false,
+                        range: (u, dataMin, dataMax) => {
+                            let [min, max] = uPlot.rangeNum(speedScaleMin, speedScaleMax, 0.1, true);
+                            return [
+                                Math.min(0, min),
+                                Math.max(0, max),
+                            ];
+                        }
+                    },
                 },
             };
-            if (isnew == 0) {
-                //u.setData(data);
-                u = new uPlot(opts, data, document.body);
-                return;
+            if (u != null) {
+                const element = document.getElementById("graph");
+                element.remove();
             }
-            u = new uPlot(opts, data, document.body);
-
+            u= new uPlot(opts, data, document.body);
             function throttle(cb, limit) {
                 var wait = false;
 
