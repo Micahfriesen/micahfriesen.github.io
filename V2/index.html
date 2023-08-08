@@ -140,7 +140,6 @@
                         // wheel scroll zoom
                         over.addEventListener("wheel", e => {
                             e.preventDefault();
-
                             let { left, top } = u.cursor;
 
                             let leftPct = left / rect.width;
@@ -250,10 +249,6 @@
                     }
                 }
             };
-            console.log("accel",accelScaleMax, accelScaleMin)
-            console.log("baro",baroScaleMax, baroScaleMin)
-            console.log("speed", speedScaleMax, speedScaleMin)
-            console.log(timeStamp[csvFile.data.length])
             chartDataReady(0)
         }
 
@@ -265,11 +260,6 @@
                 accelSpeed,
                 baroSpeed,
             ];
-            if(isnew == 0) {
-                u.setData(data);
-                return;
-            }
-            console.time('chart');
 
             let opts = {
                 id: "graph",
@@ -282,33 +272,39 @@
                 //Series
                 series: [
                     {
+                        scale: "x",
                         label: "TimeStamp",
                     },
                     {
                         scale: "G",
                         label: AccelHeader,
                         stroke: "green",
+                        scale: [(accelScaleMin * -1), accelScaleMax],
                     },
                     {
                         scale: "ft",
                         label: BaroHeader,
                         stroke: "blue",
+                        scale: [(baroScaleMin * -1), baroScaleMax],
                     },
                     {
                         scale: "mph",
                         label: AccelSpeedHeader,
                         stroke: "red",
+                        scale: [(speedScaleMin * -1), speedScaleMax],
                     },
                     {
                         scale: "mph",
                         label: BaroSpeedHeader,
                         stroke: "purple ",
+                        scale: [(speedScaleMin * -1), speedScaleMax],
                     },
                 ],
                 // Axes
                 axes: [
                     {
                         //	size: 30,
+                        scale: "x",
                         label: "X Axis Label",
                         labelSize: 20,                        
                         grid: {
@@ -362,8 +358,29 @@
                         show: false,
                     },
                 ],
+				scales: {
+					x: {
+						time: false,
+					},
+                    y: {
+                        auto: false,
+                    },
+                    "G" : {
+                        auto: false,
+                    },
+                    "ft": {
+                        auto: false,
+                    },
+                    "mph": {
+                        auto: false,
+                    },
+				},
             };
-
+            if (isnew == 0) {
+                //u.setData(data);
+                u = new uPlot(opts, data, document.body);
+                return;
+            }
             u = new uPlot(opts, data, document.body);
 
             function throttle(cb, limit) {
@@ -382,7 +399,6 @@
             window.addEventListener("resize", e => {
                 u.setSize(getSize());
             });
-            console.timeEnd('chart');
         }
 
         function openFile() {
@@ -396,6 +412,7 @@
             reader.onload = function (e) {
                 document.getElementById('contents').innerHTML = e.target.result;
             }
+            FileName.length = 0;
             FileName.push(file.name);
             console.log(FileName)
             Papa.parse(file, {
@@ -408,7 +425,6 @@
                 }
             });
         }
-        chartDataReady(1)
     </script>
     <button class="button button1" onclick="openFile()">Open .csv</button>
     <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
