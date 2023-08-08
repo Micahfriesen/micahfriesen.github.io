@@ -39,11 +39,22 @@
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 
     <script>
+        let u; // internal variable for graph
+
         const timeStamp = [];
         const accelData = [];
         const baroData = [];
         const accelSpeed = [];
         const baroSpeed = [];
+        
+        let accelScaleMax = 0;
+        let accelScaleMin = 0;
+
+        let baroScaleMax = 0;
+        let baroScaleMin = 0;
+
+        let speedScaleMax = 0;
+        let speedScaleMin = 0;
 
         const AccelHeader = [];
         const BaroHeader = [];
@@ -153,8 +164,8 @@
 
                             u.batch(() => {
                                 u.setScale("x", {
-                                    min: nxMin - 20,
-                                    max: nxMax + 20,
+                                    min: nxMin,
+                                    max: nxMax,
                                 });
 
                                 u.setScale("y", {
@@ -194,20 +205,70 @@
             for (i = 1; i < csvFile.data.length; i++) {
                 //timeStamp.push(csvFile.data[i][0]/1000)
                 timeStamp.push(i)
-                accelData.push(csvFile.data[i][1])
-                baroData.push(csvFile.data[i][2])
-                accelSpeed.push(csvFile.data[i][3])
-                baroSpeed.push(csvFile.data[i][4])
+
+                accelData.push(parseInt(csvFile.data[i][1]))
+                if(parseInt(csvFile.data[i][1]) > 0) {
+                    if(parseInt(csvFile.data[i][1]) > accelScaleMax) {
+                        accelScaleMax = csvFile.data[i][1]
+                    }
+                } else if(parseInt(csvFile.data[i][1]) < 0) {
+                    if(parseInt(csvFile.data[i][1]) < accelScaleMin) {
+                        accelScaleMin = csvFile.data[i][1]
+                    }
+                }
+
+                baroData.push(parseInt(csvFile.data[i][2]))
+                if (parseInt(csvFile.data[i][2]) > 0) {
+                    if (parseInt(csvFile.data[i][2]) > baroScaleMax) {
+                        baroScaleMax = csvFile.data[i][2]
+                    }
+                } else if (parseInt(csvFile.data[i][2]) < 0) {
+                    if (parseInt(csvFile.data[i][2]) < baroScaleMin) {
+                        baroScaleMin = csvFile.data[i][2]
+                    }
+                }
+
+                accelSpeed.push(parseInt(csvFile.data[i][3]))
+                if (parseInt(csvFile.data[i][3]) > 0) {
+                    if (parseInt(csvFile.data[i][3]) > speedScaleMax) {
+                        speedScaleMax = csvFile.data[i][3]
+                    }
+                } else if (parseInt(csvFile.data[i][3]) < 0) {
+                    if (parseInt(csvFile.data[i][3]) < speedScaleMin) {
+                        speedScaleMin = csvFile.data[i][3]
+                    }
+                }
+
+                baroSpeed.push(parseInt(csvFile.data[i][4]))
+                if (parseInt(csvFile.data[i][4]) > 0) {
+                    if (parseInt(csvFile.data[i][4]) > speedScaleMax) {
+                        speedScaleMax = csvFile.data[i][4]
+                    }
+                } else if (parseInt(csvFile.data[i][4]) < 0) {
+                    if (parseInt(csvFile.data[i][4]) < speedScaleMin) {
+                        speedScaleMin = csvFile.data[i][4]
+                    }
+                }
             };
+            console.log("accel",accelScaleMax, accelScaleMin)
+            console.log("baro",baroScaleMax, baroScaleMin)
+            console.log("speed", speedScaleMax, speedScaleMin)
             console.log(timeStamp[csvFile.data.length])
-            chartDataReady()
+            chartDataReady(0)
         }
 
-        /*function updateChart() {
-            u.update
-        }*/
-
-        function chartDataReady() {
+        function chartDataReady(isnew) {            
+            const data = [
+                timeStamp,
+                accelData,
+                baroData,
+                accelSpeed,
+                baroSpeed,
+            ];
+            if(isnew == 0) {
+                u.setData(data);
+                return;
+            }
             console.time('chart');
 
             let opts = {
@@ -218,38 +279,47 @@
                 plugins: [
                     wheelZoomPlugin({ factor: .9 }),
                 ],
+                //Series
                 series: [
                     {
                         label: "TimeStamp",
                     },
                     {
+                        scale: "G",
                         label: AccelHeader,
                         stroke: "green",
-                        range: [-20, 40],
                     },
                     {
+                        scale: "ft",
                         label: BaroHeader,
                         stroke: "blue",
-                        range: [-200, 400],
                     },
                     {
+                        scale: "mph",
                         label: AccelSpeedHeader,
                         stroke: "red",
-                        range: [-100, 400],
                     },
                     {
+                        scale: "mph",
                         label: BaroSpeedHeader,
                         stroke: "purple ",
-                        range: [-100, 400],
                     },
                 ],
+                // Axes
                 axes: [
                     {
                         //	size: 30,
                         label: "X Axis Label",
-                        labelSize: 20,
+                        labelSize: 20,                        
+                        grid: {
+                            show: true,
+                            stroke: "rgb(230, 230, 230)",
+                            width: 2,
+                            dash: [10, 5],
+                        },
                     },
                     {
+                        scale: "G",
                         space: 30,
                         //	size: 40,
                         side: 3,
@@ -259,12 +329,10 @@
                         stroke: "green",
                         grid: {
                             show: false,
-                            stroke: "#eee",
-                            width: 2,
-                            dash: [],
                         },
                     },
                     {
+                        scale: "ft",
                         space: 30,
                         side: 3,
                         label: "ft",
@@ -275,10 +343,11 @@
                             show: true,
                             stroke: "rgb(230, 230, 230)",
                             width: 2,
-                            dash: [],
+                            dash: [10, 5],
                         },
                     },
                     {
+                        scale: "mph",
                         space: 30,
                         side: 1,
                         label: "mph",
@@ -287,35 +356,15 @@
                         stroke: "purple",
                         grid: {
                             show: false,
-                            stroke: "#eee",
-                            width: 2,
-                            dash: [],
                         },
                     },
                     {
                         show: false,
                     },
                 ],
-                scales: {
-                    x: {
-                        time: false,
-                    },
-                    //y: {
-                        //range: [-200, 400],
-                        //auto: true,
-                    //}
-                },
             };
 
-            const data = [
-                timeStamp,
-                accelData,
-                baroData,
-                accelSpeed,
-                baroSpeed,
-            ];
-
-            let u = new uPlot(opts, data, document.body);
+            u = new uPlot(opts, data, document.body);
 
             function throttle(cb, limit) {
                 var wait = false;
@@ -359,7 +408,7 @@
                 }
             });
         }
-        //chartDataReady()
+        chartDataReady(1)
     </script>
     <button class="button button1" onclick="openFile()">Open .csv</button>
     <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
