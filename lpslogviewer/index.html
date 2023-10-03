@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset- "UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="dist/uPlot.min.css">
+    <title>RocketViewer</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        .button {
+            border: none;
+            color: white;
+            padding: 20px 54px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .button1 {
+            background-color: white;
+            color: black;
+            border: 2px solid #4CAF50;
+        }
+
+        .button1:hover {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btncontainer{  
+            text-align: center;  
+            width: device-width;  
+            height: 54px;  
+            padding-top: 20px; 
+            padding-bottom: 40px; 
+        }  
+    </style>
+</head>
+
+<body>
+    <script src="dist/uPlot.iife.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="drawGraph.js"></script>
+    <div class="btncontainer">  
+    <button id="btn" class="button button1" onclick="openFile()">Open .csv</button>
+    </div>
+    <input id="inp" type='file' style="visibility:hidden;" onchange="readFile(event)" />
+</body>
+
+</html>
