@@ -143,7 +143,7 @@ function wheelZoomPlugin(opts) {
 function getSize() {
     return {
         width: window.innerWidth - 100,
-        height: window.innerHeight - 100,
+        height: window.innerHeight - 200,
     }
 }
 function drawGraph(csvFile) {
@@ -395,7 +395,8 @@ function chartDataReady(isnew) {
         const element = document.getElementById("graph");
         element.remove();
     }
-    u= new uPlot(opts, data, document.body);
+    // u = new uPlot(opts, data, document.body);
+    new uPlot(opts, data, document.getElementById('graphContainer'));
     function throttle(cb, limit) {
         var wait = false;
 
