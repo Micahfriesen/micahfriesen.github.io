@@ -267,7 +267,7 @@ function chartDataReady(isnew) {
         axes: [
             {
                 scale: "x",
-                label: "X Axis Label",
+                label: FileName,
                 labelSize: 20,
                 grid: {
                     show: true,
